@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Master - Premium</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chess Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- View 1: Authentication -->
+        <div id="view-auth" class="view-panel active">
+            <div class="glass-panel auth-box">
+                <div class="logo-area">
+                    <i class="fa-solid fa-chess-king fa-3x glow-icon"></i>
+                    <h1>Chess Master</h1>
+                    <p>Experience the Royal Game</p>
+                </div>
+
+                <div class="auth-forms">
+                    <div id="login-form-container">
+                        <h2>Welcome Back</h2>
+                        <form id="login-form">
+                            <div class="input-group">
+                                <i class="fa-solid fa-envelope"></i>
+                                <input type="email" id="login-email" placeholder="Email Address" required>
+                            </div>
+                            <div class="input-group">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="login-password" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="btn-primary">Sign In</button>
+                        </form>
+                        <p class="switch-text">New here? <a href="#" id="switch-to-signup">Create Account</a></p>
+                        <div class="divider"><span>OR</span></div>
+                        <button id="online-btn" class="btn-primary"
+                            style="background: linear-gradient(135deg, #ec4899, #8b5cf6); margin-bottom: 10px;">
+                            <i class="fa-solid fa-globe"></i> Play Online
+                        </button>
+                        <button id="guest-btn" class="btn-secondary">Play Against AI (Guest)</button>
+                    </div>
+
+                    <div id="signup-form-container" class="hidden">
+                        <h2>Create Account</h2>
+                        <form id="signup-form">
+                            <div class="input-group">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="signup-name" placeholder="Username" required>
+                            </div>
+                            <div class="input-group">
+                                <i class="fa-solid fa-envelope"></i>
+                                <input type="email" id="signup-email" placeholder="Email Address" required>
+                            </div>
+                            <div class="input-group">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="signup-password" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="btn-primary">Sign Up</button>
+                        </form>
+                        <p class="switch-text">Already have an account? <a href="#" id="switch-to-login">Sign In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 2: Stage Selection -->
+        <div id="view-stages" class="view-panel hidden">
+            <div class="glass-panel items-center-panel"
+                style="width: 100%; max-width: 1000px; height: 90vh; display: flex; flex-direction: column;">
+                <div class="top-bar" style="width: 100%;">
+                    <div class="logo-small">
+                        <i class="fa-solid fa-chess"></i>
+                        <span>Select Campaign Stage</span>
+                    </div>
+                    <div class="user-profile">
+                        <span id="stages-username">User</span>
+                        <button id="stages-logout-btn" class="btn-icon"><i
+                                class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                </div>
+
+                <div class="stages-container" style="flex: 1; overflow-y: auto; width: 100%; padding: 20px;">
+                    <div class="stages-grid-full" id="stages-grid">
+                        <!-- generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Game UI -->
+        <div id="view-game" class="view-panel hidden">
+            <header class="top-bar glass-panel" style="margin-bottom: 10px;">
+                <button id="back-to-stages-btn" class="btn-secondary" style="width: auto; margin:0; padding: 8px 15px;">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </button>
+                <div class="logo-small">
+                    <span>Chess Master</span> <span id="game-stage-indicator"
+                        style="margin-left: 10px; opacity: 0.7; font-size: 0.9em;"></span>
+                </div>
+                <div class="user-profile">
+                    <span id="game-username">User</span>
+                </div>
+            </header>
+
+            <main class="content-area">
+                <div class="game-layout-centered">
+                    <!-- Left Side: Opponent & Info -->
+                    <div class="sidebar glass-panel">
+                        <div class="player-info opponent">
+                            <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                            <div class="details">
+                                <span class="name">AI Engine</span>
+                                <span class="status">Level <span id="ai-level">1</span></span>
+                            </div>
+                            <div class="timer">∞</div>
+                        </div>
+
+                        <div class="move-history" id="move-history">
+                            <h3>History</h3>
+                            <ul id="history-list">
+                                <!-- Moves will basically go here -->
+                            </ul>
+                        </div>
+
+                        <div class="player-info me">
+                            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                            <div class="details">
+                                <span class="name" id="player-name">You</span>
+                                <span class="status">Rating: 1200</span>
+                            </div>
+                            <div class="timer">∞</div>
+                        </div>
+                    </div>
+
+                    <!-- Center: The Board -->
+                    <div class="board-area">
+                        <div id="chess-board" class="chess-board">
+                            <!-- Squares and pieces generated by JS -->
+                        </div>
+
+                        <div class="game-controls glass-panel">
+                            <button id="undo-btn" class="control-btn" title="Undo"><i
+                                    class="fa-solid fa-rotate-left"></i></button>
+                            <button id="hint-btn" class="control-btn" title="Hint"><i
+                                    class="fa-solid fa-lightbulb"></i></button>
+                            <button id="restart-btn" class="control-btn" title="New Game"><i
+                                    class="fa-solid fa-rotate"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="modal hidden">
+        <div class="glass-panel game-over-content">
+            <div class="game-over-icon">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 id="game-over-title">Game Over</h2>
+            <p id="game-over-message">Checkmate!</p>
+            <div class="game-over-actions">
+                <button id="restart-game-btn" class="btn-primary">
+                    <i class="fa-solid fa-rotate"></i> Play Again
+                </button>
+                <button id="back-to-menu-btn" class="btn-secondary">
+                    <i class="fa-solid fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div id="promotion-modal" class="modal hidden">
+        <div class="glass-panel modal-content">
+            <h3>Choose Promotion</h3>
+            <div class="promo-pieces">
+                <div class="promo-option" data-piece="q"><i class="fa-solid fa-chess-queen"></i></div>
+                <div class="promo-option" data-piece="r"><i class="fa-solid fa-chess-rook"></i></div>
+                <div class="promo-option" data-piece="b"><i class="fa-solid fa-chess-bishop"></i></div>
+                <div class="promo-option" data-piece="n"><i class="fa-solid fa-chess-knight"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification/Toast -->
+    <div id="toast-container"></div>
+
+    <script src="ai.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
